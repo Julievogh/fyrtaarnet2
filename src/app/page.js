@@ -1,26 +1,51 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const [startMusic, setStartMusic] = useState(false);
 
-  useEffect(() => {
-    const t1 = setTimeout(() => setStartMusic(true), 1500);
-    const t2 = setTimeout(() => setShowIntro(false), 3000);
+  const timers = useRef([]);
 
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
+
+  const startSequence = () => {
+    clearTimers();
+
+    setShowIntro(true);
+    setStartMusic(false);
+
+    timers.current.push(
+      setTimeout(() => setStartMusic(true), 1500)
+    );
+
+    timers.current.push(
+      setTimeout(() => setShowIntro(false), 3000)
+    );
+  };
+
+  useEffect(() => {
+    startSequence();
+    return clearTimers;
   }, []);
+
+  const restart = () => {
+    startSequence();
+  };
 
   return (
     <>
       {startMusic && <Music />}
-      {showIntro ? <BookIntro /> : <Book />}
+      {showIntro ? (
+        <BookIntro />
+      ) : (
+        <Book restart={restart} />
+      )}
     </>
   );
 }
@@ -42,7 +67,7 @@ function BookIntro() {
 }
 
 /* 📖 BOOK */
-function Book() {
+function Book({ restart }) {
   const pages = useMemo(
     () => [
       [
@@ -106,7 +131,6 @@ function Book() {
         "Stod fyrtårnet oprejst",
         "Og strålede om kap med stjernerne"
       ],
-
       ["__IMAGES__"]
     ],
     []
@@ -123,18 +147,28 @@ function Book() {
 
   useEffect(() => {
     let i = -1;
+    let interval;
+    let timeout;
+
     setActiveLine(-1);
 
-    const interval = setInterval(() => {
-      i++;
-      setActiveLine(i);
+    const start = () => {
+      interval = setInterval(() => {
+        i++;
+        setActiveLine(i);
 
-      if (i >= pages[page].length - 1) {
-        clearInterval(interval);
-      }
-    }, 850);
+        if (i >= pages[page].length - 1) {
+          clearInterval(interval);
+        }
+      }, 850);
+    };
 
-    return () => clearInterval(interval);
+    timeout = setTimeout(start, 50);
+
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [page, pages]);
 
   return (
@@ -144,8 +178,11 @@ function Book() {
 
       <div className="w-full max-w-2xl flex flex-col items-center">
 
-        {/* 📖 ICON */}
-        <div className="flex justify-center mb-3 pointer-events-none">
+        {/* 📖 ICON (CLICK TO RESTART) */}
+        <div
+          className="flex justify-center mb-3 cursor-pointer"
+          onClick={restart}
+        >
           <Image
             src="/fyrtaarn.jpg"
             alt="Fyrtårn"
@@ -155,8 +192,11 @@ function Book() {
           />
         </div>
 
-        {/* 📖 TITLE (ALWAYS VISIBLE) */}
-        <div className="mb-8 text-center font-bold text-xl md:text-2xl tracking-wide">
+        {/* 📖 TITLE (CLICK TO RESTART) */}
+        <div
+          onClick={restart}
+          className="mb-8 text-center font-bold text-xl md:text-2xl tracking-wide cursor-pointer"
+        >
           Fyrtårn
         </div>
 
@@ -166,46 +206,45 @@ function Book() {
           {pages[page][0] === "__IMAGES__" ? (
 
             /* 🖼️ FINAL IMAGE PAGE */
-<div className="flex flex-col items-center gap-6 animate-fadeIn">
+            <div className="flex flex-col items-center gap-6 animate-fadeIn">
 
-  {/* 🖼️ billeder */}
-  <div className="flex gap-6 justify-center items-center">
+              <div className="flex gap-6 justify-center items-center">
 
-    <div className="w-[180px] h-[280px] overflow-hidden relative">
-      <Image
-        src="/muffe1.png"
-        alt="muffe 1"
-        fill
-        className="object-cover object-[50%_12%]"
-      />
-    </div>
+                <div className="w-[180px] h-[280px] overflow-hidden relative">
+                  <Image
+                    src="/muffe1.png"
+                    alt="muffe 1"
+                    fill
+                    className="object-cover object-[50%_12%]"
+                  />
+                </div>
 
-    <div className="w-[180px] h-[280px] overflow-hidden relative">
-      <Image
-        src="/muffe2.png"
-        alt="muffe 2"
-        fill
-        className="object-cover object-[50%_12%]"
-      />
-    </div>
+                <div className="w-[180px] h-[280px] overflow-hidden relative">
+                  <Image
+                    src="/muffe2.png"
+                    alt="muffe 2"
+                    fill
+                    className="object-cover object-[50%_12%]"
+                  />
+                </div>
 
-    <div className="w-[180px] h-[280px] overflow-hidden relative">
-      <Image
-        src="/muffe3.png"
-        alt="muffe 3"
-        fill
-        className="object-cover object-[50%_12%]"
-      />
-    </div>
+                <div className="w-[180px] h-[280px] overflow-hidden relative">
+                  <Image
+                    src="/muffe3.png"
+                    alt="muffe 3"
+                    fill
+                    className="object-cover object-[50%_12%]"
+                  />
+                </div>
 
-  </div>
+              </div>
 
-  {/* 🎉 tekst under billeder */}
-  <div className="text-center mt-4 text-lg md:text-xl font-light tracking-wide">
-    Tillykke med din dag, morfar
-  </div>
+              <div className="text-center mt-4 text-lg md:text-xl font-light tracking-wide">
+                Tillykke med din dag, morfar. Elsker dig. Tak for dine kloge ord, hjælp og sjove historier - Julie
+              </div>
 
-</div>
+            </div>
+
           ) : (
 
             /* 📖 TEXT */
