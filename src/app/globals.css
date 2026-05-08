@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+/* 🎨 BASE COLORS */
+:root {
+  --background: #fbf6ee;
+  --foreground: #1f1b16;
+}
+
+/* 📖 PAGE LOOK (paper feel + easier reading) */
+body {
+  background: radial-gradient(circle at top, #fbf6ee, #efe4d3);
+  color: var(--foreground);
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ✨ FADE IN */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.9s ease forwards;
+}
+
+/* 📖 INTRO ANIMATION */
+@keyframes bookOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-bookOpen {
+  animation: bookOpen 1.8s ease-out forwards;
+}
+
+/* 🌫️ SOFT RADIAL BACKGROUND */
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
+/* 📚 IMPROVED TEXT READABILITY */
+p {
+  color: rgba(25, 20, 15, 0.88);
+}
+
+/* 🔘 BUTTON STYLE (mere elegant) */
+button {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
