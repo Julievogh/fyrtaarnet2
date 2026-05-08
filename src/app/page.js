@@ -1,65 +1,45 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const [startMusic, setStartMusic] = useState(false);
+  const [musicKey, setMusicKey] = useState(0);
 
-  const timers = useRef([]);
-
-  const clearTimers = () => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  };
-
-  const startSequence = () => {
-    clearTimers();
-
-    setShowIntro(true);
-    setStartMusic(false);
-
-    timers.current.push(
-      setTimeout(() => setStartMusic(true), 1500)
-    );
-
-    timers.current.push(
-      setTimeout(() => setShowIntro(false), 3000)
-    );
-  };
-
-  useEffect(() => {
-    startSequence();
-    return clearTimers;
-  }, []);
-
-  const restart = () => {
-    startSequence();
+  const startExperience = () => {
+    setMusicKey((prev) => prev + 1);
+    setStartMusic(true);
+    setShowIntro(false);
   };
 
   return (
     <>
-      {startMusic && <Music />}
+      {startMusic && <Music key={musicKey} />}
+
       {showIntro ? (
-        <BookIntro />
+        <BookIntro onStart={startExperience} />
       ) : (
-        <Book restart={restart} />
+        <Book restart={startExperience} />
       )}
     </>
   );
 }
 
 /* 📖 INTRO */
-function BookIntro() {
+function BookIntro({ onStart }) {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#f6f1ea]">
+    <main
+      className="min-h-screen flex items-center justify-center bg-[#f6f1ea] cursor-pointer"
+      onClick={onStart}
+    >
       <div className="text-center animate-bookOpen">
         <h1 className="text-2xl md:text-3xl font-light mb-4">
           Til min morfar
         </h1>
         <p className="text-sm opacity-70">
-          En fortælling om et fyrtårn
+          Klik for at åbne bogen
         </p>
       </div>
     </main>
@@ -145,6 +125,7 @@ function Book({ restart }) {
     setTimeout(() => setPage(next), 120);
   };
 
+  /* ✅ STABIL TYPEWRITER FIX */
   useEffect(() => {
     let i = -1;
     let interval;
@@ -152,7 +133,7 @@ function Book({ restart }) {
 
     setActiveLine(-1);
 
-    const start = () => {
+    timeout = setTimeout(() => {
       interval = setInterval(() => {
         i++;
         setActiveLine(i);
@@ -161,15 +142,13 @@ function Book({ restart }) {
           clearInterval(interval);
         }
       }, 850);
-    };
-
-    timeout = setTimeout(start, 50);
+    }, 50);
 
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [page, pages]);
+  }, [page]);
 
   return (
     <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center px-6 relative overflow-hidden">
@@ -178,7 +157,7 @@ function Book({ restart }) {
 
       <div className="w-full max-w-2xl flex flex-col items-center">
 
-        {/* 📖 ICON (CLICK TO RESTART) */}
+        {/* 🔄 ICON RESET */}
         <div
           className="flex justify-center mb-3 cursor-pointer"
           onClick={restart}
@@ -192,7 +171,7 @@ function Book({ restart }) {
           />
         </div>
 
-        {/* 📖 TITLE (CLICK TO RESTART) */}
+        {/* 🔄 TITLE RESET */}
         <div
           onClick={restart}
           className="mb-8 text-center font-bold text-xl md:text-2xl tracking-wide cursor-pointer"
@@ -200,41 +179,24 @@ function Book({ restart }) {
           Fyrtårn
         </div>
 
-        {/* 📖 CONTENT */}
+        {/* CONTENT */}
         <div className="h-[460px] w-full flex items-center justify-center">
 
           {pages[page][0] === "__IMAGES__" ? (
-
-            /* 🖼️ FINAL IMAGE PAGE */
             <div className="flex flex-col items-center gap-6 animate-fadeIn">
 
               <div className="flex gap-6 justify-center items-center">
 
                 <div className="w-[180px] h-[280px] overflow-hidden relative">
-                  <Image
-                    src="/muffe1.png"
-                    alt="muffe 1"
-                    fill
-                    className="object-cover object-[50%_12%]"
-                  />
+                  <Image src="/muffe1.png" alt="" fill className="object-cover object-[50%_12%]" />
                 </div>
 
                 <div className="w-[180px] h-[280px] overflow-hidden relative">
-                  <Image
-                    src="/muffe2.png"
-                    alt="muffe 2"
-                    fill
-                    className="object-cover object-[50%_12%]"
-                  />
+                  <Image src="/muffe2.png" alt="" fill className="object-cover object-[50%_12%]" />
                 </div>
 
                 <div className="w-[180px] h-[280px] overflow-hidden relative">
-                  <Image
-                    src="/muffe3.png"
-                    alt="muffe 3"
-                    fill
-                    className="object-cover object-[50%_12%]"
-                  />
+                  <Image src="/muffe3.png" alt="" fill className="object-cover object-[50%_12%]" />
                 </div>
 
               </div>
@@ -244,10 +206,7 @@ function Book({ restart }) {
               </div>
 
             </div>
-
           ) : (
-
-            /* 📖 TEXT */
             <div className="flex flex-col items-center gap-5 text-center text-lg md:text-xl font-light leading-normal tracking-wide">
 
               {pages[page].map((line, i) => (
@@ -259,27 +218,26 @@ function Book({ restart }) {
               ))}
 
             </div>
-
           )}
 
         </div>
 
-        {/* 🔘 NAVIGATION */}
+        {/* NAV */}
         <div className="h-[70px] mt-10 flex items-center justify-center gap-10">
 
-          <button
-            onClick={() => goToPage(Math.max(page - 1, 0))}
-            className="cursor-pointer hover:opacity-60 transition text-sm"
-          >
-            ← Forrige
-          </button>
+       <button
+  onClick={() => goToPage(Math.max(page - 1, 0))}
+  className="cursor-pointer"
+>
+  ← Forrige
+</button>
 
-          <button
-            onClick={() => goToPage(Math.min(page + 1, pages.length - 1))}
-            className="cursor-pointer hover:opacity-60 transition text-sm"
-          >
-            Næste →
-          </button>
+<button
+  onClick={() => goToPage(Math.min(page + 1, pages.length - 1))}
+  className="cursor-pointer"
+>
+  Næste →
+</button>
 
         </div>
 
@@ -288,7 +246,7 @@ function Book({ restart }) {
   );
 }
 
-/* ✨ TYPEWRITER */
+/* ✨ TYPEWRITER (FIXED + STABLE) */
 function RevealLine({ text, active }) {
   return (
     <p className="min-h-[1.6em]">
@@ -297,25 +255,26 @@ function RevealLine({ text, active }) {
           key={i}
           style={{
             opacity: active ? 1 : 0,
-            transition: "opacity 0.45s ease",
-            transitionDelay: `${i * 22}ms`
+            transform: active ? "translateY(0px)" : "translateY(4px)",
+            transition: "opacity 0.4s ease, transform 0.4s ease",
+            transitionDelay: `${i * 18}ms`,
           }}
         >
-          {char}
+          {char === " " ? "\u00A0" : char}
         </span>
       ))}
     </p>
   );
 }
 
-/* 🎧 MUSIC */
+/* 🎧 MUSIC (WORKING YOUTUBE AUTOPLAY FIX) */
 function Music() {
   return (
     <iframe
       src="https://www.youtube.com/embed/ohk3DP5fMCg?autoplay=1&loop=1&playlist=ohk3DP5fMCg&controls=0&mute=0&playsinline=1"
-      allow="autoplay"
+      allow="autoplay; encrypted-media"
       className="fixed inset-0 w-0 h-0 opacity-0 pointer-events-none"
-      title="Leonard Cohen - Famous Blue Raincoat"
+      title="Music"
     />
   );
 }
